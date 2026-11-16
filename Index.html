@@ -44,6 +44,13 @@ button{font:inherit;cursor:pointer}
 .answer.wrong{background:linear-gradient(110deg,#7a2632,#a63742);border:2px solid #ff9da5}
 #status{text-align:center;min-height:30px;margin:14px 0 2px;font-weight:800}
 #lifelinebar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+#helpMenu{display:none;position:fixed;inset:0;background:#000b;z-index:19;align-items:center;justify-content:center;padding:16px}
+#helpMenu.open{display:flex}
+#helpMenuCard{width:min(520px,100%);background:linear-gradient(155deg,#12376b,#06152f);border:2px solid #d8ad4b;border-radius:18px;padding:22px;text-align:center}
+#helpMenuCard h2{color:#f5d17a}
+#helpChoices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+#helpChoices .life-btn{min-height:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}#helpChoices .life-btn .life-state{font-size:11px;opacity:.9;font-weight:600}#helpChoices .life-btn:disabled{opacity:.48;filter:grayscale(1);text-decoration:line-through}
+#helpMenuClose{background:#28486e;color:white;border:1px solid #7596c5;border-radius:9px;padding:11px 18px;width:100%}
 .life-btn{background:linear-gradient(110deg,#173f75,#245b98);border:1px solid #d5b45d;color:#fff;border-radius:10px;padding:10px 13px;font-weight:700;font-size:13px}
 .life-btn:disabled{opacity:.38;filter:grayscale(1);cursor:not-allowed}
 #helpPanel{display:none;position:fixed;inset:0;background:#000b;z-index:20;align-items:center;justify-content:center;padding:16px}
@@ -76,10 +83,7 @@ button{font:inherit;cursor:pointer}
 <div id="timer">60</div><div id="progress"></div><div id="qnum"></div>
 <div id="question"></div>
 <div id="lifelinebar" aria-label="Segítségek">
-<button class="life-btn" data-life="fifty">½ 50:50</button>
-<button class="life-btn" data-life="phone">☎ Telefonos segítség</button>
-<button class="life-btn" data-life="audience">▥ Közönség</button>
-<button class="life-btn" data-life="host">★ Műsorvezető</button>
+<button class="primary" id="openHelpMenu" type="button">🛟 SEGÍTSÉG KÉRÉSE</button>
 </div>
 <div id="answers"></div><div id="status" aria-live="polite"></div>
 <button class="primary" id="next">KÖVETKEZŐ KÉRDÉS</button>
@@ -89,6 +93,14 @@ button{font:inherit;cursor:pointer}
 <button class="primary" id="restart">ÚJRAJÁTSZÁS</button>
 </section>
 </main>
+<div id="helpMenu" role="dialog" aria-modal="true" aria-label="Segítség kiválasztása">
+ <div id="helpMenuCard"><h2>Milyen segítséget kérsz?</h2><p>Mindegyik segítséget egyszer használhatod fel.</p><div id="helpChoices">
+  <button class="life-btn" data-life="fifty">½ 50:50 <span class="life-state">ELÉRHETŐ</span></button>
+  <button class="life-btn" data-life="phone">☎ Telefonos segítség <span class="life-state">ELÉRHETŐ</span></button>
+  <button class="life-btn" data-life="audience">▥ Közönség <span class="life-state">ELÉRHETŐ</span></button>
+  <button class="life-btn" data-life="host">★ Műsorvezető <span class="life-state">ELÉRHETŐ</span></button>
+ </div><button id="helpMenuClose" type="button">MÉGSEM</button></div>
+</div>
 <div id="helpPanel" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
  <div id="helpCard"><h2 id="helpTitle">Segítség</h2><div id="helpClock">60</div><div id="helpContent"></div><button id="helpClose" type="button">VISSZA A KÉRDÉSHEZ</button></div>
 </div>
@@ -116,8 +128,8 @@ function wrongSound(){tone(220,.3,"sawtooth",.06);tone(165,.45,"sawtooth",.05,.2
 function tick(urgent=false){tone(urgent?1120:760,urgent?.075:.045,"square",urgent?.045:.022)}
 function stop(){if(timer){clearInterval(timer);timer=null}}
 function stopHelp(){if(helpTimer){clearInterval(helpTimer);helpTimer=null}}
-function updateLifeButtons(){document.querySelectorAll('[data-life]').forEach(b=>{b.disabled=usedLives[b.dataset.life]||locked})}
-function openHelp(title,html){stop();stopHelp();helpActive=true;helpLeft=60;$('helpTitle').textContent=title;$('helpContent').innerHTML=html;$('helpClock').textContent='60';$('helpPanel').classList.add('open');helpTimer=setInterval(()=>{helpLeft--;$('helpClock').textContent=helpLeft;if(helpLeft<=0)closeHelp()},1000)}
+function updateLifeButtons(){document.querySelectorAll('[data-life]').forEach(b=>{const spent=usedLives[b.dataset.life];b.disabled=spent||locked;const state=b.querySelector('.life-state');if(state)state.textContent=spent?'ELFOGYOTT':'ELÉRHETŐ'})}
+function openHelp(title,html){$('helpMenu').classList.remove('open');stop();stopHelp();helpActive=true;helpLeft=60;$('helpTitle').textContent=title;$('helpContent').innerHTML=html;$('helpClock').textContent='60';$('helpPanel').classList.add('open');helpTimer=setInterval(()=>{helpLeft--;$('helpClock').textContent=helpLeft;if(helpLeft<=0)closeHelp()},1000)}
 function closeHelp(){stopHelp();$('helpPanel').classList.remove('open');if(helpActive&&!locked){helpActive=false;clock(false)}}
 function useLife(kind){if(locked||usedLives[kind])return;usedLives[kind]=true;updateLifeButtons();const q=questions[i],letter=String.fromCharCode(65+q.c);
  if(kind==='fifty'){
@@ -144,6 +156,11 @@ function answer(n){if(locked||helpActive)return;locked=true;stop();stopHelp();co
 function finish(){stop();$("game").hidden=true;$("result").hidden=false;$("score").textContent=`${score} / ${questions.length}`;$("message").textContent=score===9?"Tökéletes! Minden kérdésre tudtad a választ!":score>=6?"Szép teljesítmény!":"Köszönjük a játékot! Próbáld meg újra!";fanfare()}
 function start(){audio();$("intro").hidden=true;$("result").hidden=true;$("game").hidden=false;i=0;score=0;render();tone(440,.2,"triangle",.06)}
 $("start").addEventListener("click",start);$("restart").addEventListener("click",start);
+$("openHelpMenu").addEventListener("click",()=>{if(locked)return;updateLifeButtons();$("helpMenu").classList.add("open")});
+$("helpMenuClose").addEventListener("click",()=>$("helpMenu").classList.remove("open"));
+document.querySelectorAll("[data-life]").forEach(b=>b.addEventListener("click",()=>useLife(b.dataset.life)));
+$("helpClose").addEventListener("click",closeHelp);
+
 $("next").addEventListener("click",()=>{if(i===questions.length-1)finish();else{i++;render()}});
 $("fullscreen").addEventListener("click",async()=>{try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen()}else{await document.exitFullscreen()}}catch(e){alert("A teljes képernyős módot a böngésző menüjéből is bekapcsolhatod.")}});
 $("sound").addEventListener("click",()=>{muted=!muted;$("sound").textContent=muted?"🔇 Hang kikapcsolva":"🔊 Hang bekapcsolva";$("sound").setAttribute("aria-pressed",String(!muted));if(!muted){audio();tone(660,.12)}});
