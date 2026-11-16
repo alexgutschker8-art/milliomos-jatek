@@ -82,7 +82,7 @@ const questions=[
 {q:"Mikor volt az esküvőtök Lillával?",a:["2011.07.20.","2013.08.10.","2012.09.01.","2013.04.01."],c:1},
 {q:"Hány évesek a gyermekeid összesen?",a:["57","fogalmam sincs","58","56"],c:0},
 {q:"Mikor költöztetek be a házatokba?",a:["2018","2017","2019","2020"],c:0},
-{q:"Ha összerakjuk a tényeket, kőkeményen dolgozol, ezzel, offroadozol, hajózol, imádod az életet és komoly utazási álmaid vannak. Mi a hivatalos diagnózis így 50 évesen?",a:["Ideje lenne végre benőnie a fejed lágynak és megkomolyodni!","Egy megállíthatatlan, vagány örökifjú vagy, akinek most kezdődik az élet második, legszebb aranykora!","Elhasználódott az alváz, irány a legközelebbi szerviz!","Elfáradtál, holnaptól jöhet a jól megérdemelt, 24 órás semmittevés!"],c:1}
+{q:"Ha összerakjuk a tényeket, kőkeményen dolgozol, edzel, offroadozol, hajózol, imádod az életet és komoly utazási álmaid vannak. Mi a hivatalos diagnózis így 50 évesen?",a:["Ideje lenne végre benőnie a fejed lágyának és megkomolyodni!","Egy megállíthatatlan, vagány örökifjú vagy, akinek most kezdődik az élet második, legszebb aranykora!","Elhasználódott az alváz, irány a legközelebbi szerviz!","Elfáradtál, holnaptól jöhet a jól megérdemelt, 24 órás semmittevés!"],c:1}
 ];
 let i=0,score=0,left=60,timer=null,locked=false,muted=false,ctx=null;
 function audio(){if(!ctx){const AC=window.AudioContext||window.webkitAudioContext;if(AC)ctx=new AC()}if(ctx&&ctx.state==="suspended")ctx.resume()}
