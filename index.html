@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#07152f">
+<title>Legyen Ön is Milliomos! – Különkiadás</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 28%,#174d91 0%,#0a2856 42%,#040d20 100%);font-family:Arial,Helvetica,sans-serif;color:#fff;display:flex;justify-content:center;align-items:center;padding:16px}
+#app{width:min(1100px,100%);min-height:min(760px,calc(100vh - 32px));display:flex;flex-direction:column;justify-content:flex-start;background:linear-gradient(160deg,rgba(10,35,78,.96),rgba(3,12,31,.98));border:2px solid #c99b3b;border-radius:20px;box-shadow:0 0 35px #0009,0 0 24px #1c68b6aa;padding:clamp(16px,4vw,30px)}
+header{text-align:center;border-bottom:1px solid #bd913c;padding-bottom:15px}
+h1{font-size:clamp(20px,5vw,30px);margin:2px 0 7px;color:#f5d17a;letter-spacing:.5px}
+#subtitle{font-size:13px;color:#d3e2f8}
+#intro,#result{text-align:center;padding:28px 8px 12px}
+.trophy{font-size:62px;margin-bottom:10px}
+h2{font-size:24px;margin:8px 0 12px}
+p{line-height:1.5;color:#dce9ff}
+button{font:inherit;cursor:pointer}
+.primary{background:linear-gradient(#f6d47c,#c58b25);border:1px solid #ffe5a3;color:#102344;font-weight:800;border-radius:10px;padding:14px 22px;width:100%;margin-top:15px;box-shadow:0 4px 0 #80551b}
+.primary:active{transform:translateY(2px);box-shadow:0 2px 0 #80551b}
+.toolbar{display:flex;justify-content:flex-end;margin:10px 0;gap:8px;flex-wrap:wrap}
+#sound,#fullscreen,#pause{background:#102b57;color:#fff;border:1px solid #7596c5;border-radius:20px;padding:9px 14px;font-size:13px}
+#pause{display:none;border-color:#e0b34e;font-weight:800}
+:fullscreen body{padding:0}
+:fullscreen #app{width:100vw;height:100vh;min-height:100vh;border-radius:0;justify-content:center;padding:3vh 5vw}
+:fullscreen #question{min-height:130px}
+:fullscreen #timer{width:105px;height:105px;font-size:38px}
+#game[hidden],#intro[hidden],#result[hidden]{display:none}
+#timer{width:92px;height:92px;border:4px solid #e0b34e;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:12px auto 14px;font-size:30px;font-weight:800;background:#061936;box-shadow:0 0 18px #3484d0}
+#timer.urgent{border-color:#ff6868;color:#ffaaaa;background:#511a28;animation:pulse .55s infinite alternate;transform:scale(1.06)}
+@keyframes pulse{to{box-shadow:0 0 24px #f44}}
+#progress{display:flex;justify-content:center;gap:8px;margin:10px 0 18px}
+.dot{width:9px;height:9px;border-radius:50%;background:#405675}
+.dot.active,.dot.past{background:#e5b54c}
+#qnum{text-align:center;color:#f3ca69;font-weight:700;font-size:13px;letter-spacing:1px}
+#question{font-size:clamp(22px,3.2vw,32px);font-weight:700;text-align:center;line-height:1.4;min-height:92px;display:flex;align-items:center;justify-content:center;padding:10px 4px}
+#answers{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px auto 0;width:min(900px,100%)}
+.answer{background:linear-gradient(110deg,#0b2d66,#16417b);border:1px solid #91b3e3;border-radius:12px;color:#fff;text-align:left;padding:20px 18px;min-height:82px;line-height:1.4;font-size:clamp(16px,2vw,21px);transition:.15s}
+.answer:hover:not(:disabled){background:#23569a;border-color:#f0c65e}
+.answer:disabled{opacity:1;cursor:default}
+.answer.correct{background:linear-gradient(110deg,#12613b,#16834e);border:2px solid #75e6a4}
+.answer.wrong{background:linear-gradient(110deg,#7a2632,#a63742);border:2px solid #ff9da5}
+#status{text-align:center;min-height:30px;margin:14px 0 2px;font-weight:800}
+#lifelinebar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+#helpMenu{display:none;position:fixed;inset:0;background:#000b;z-index:19;align-items:center;justify-content:center;padding:16px}
+#helpMenu.open{display:flex}
+#helpMenuCard{width:min(520px,100%);background:linear-gradient(155deg,#12376b,#06152f);border:2px solid #d8ad4b;border-radius:18px;padding:22px;text-align:center}
+#helpMenuCard h2{color:#f5d17a}
+#helpChoices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+#helpChoices .life-btn{min-height:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+#helpChoices .life-btn .life-state{font-size:11px;opacity:.9;font-weight:600}
+#helpChoices .life-btn:disabled{opacity:.48;filter:grayscale(1);text-decoration:line-through}
+#helpMenuClose{background:#28486e;color:white;border:1px solid #7596c5;border-radius:9px;padding:11px 18px;width:100%}
+.life-btn{background:linear-gradient(110deg,#173f75,#245b98);border:1px solid #d5b45d;color:#fff;border-radius:10px;padding:10px 13px;font-weight:700;font-size:13px}
+.life-btn:disabled{opacity:.38;filter:grayscale(1);cursor:not-allowed}
+#helpPanel{display:none;position:fixed;inset:0;background:#000b;z-index:20;align-items:center;justify-content:center;padding:16px}
+#helpPanel.open{display:flex}
+#helpCard{width:min(560px,100%);max-height:88vh;overflow:auto;background:linear-gradient(155deg,#12376b,#06152f);border:2px solid #d8ad4b;border-radius:18px;padding:22px;box-shadow:0 15px 60px #000b;text-align:center}
+#helpTitle{color:#f5d17a;margin:0 0 8px}
+#helpClock{width:104px;height:104px;border:5px solid #e0b34e;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:900;color:#ffe08a;margin:14px auto;background:#061936;box-shadow:0 0 20px #3484d0}
+#helpContent{line-height:1.5;color:#e8f1ff;margin:14px 0;min-height:8px;font-size:16px}
+#helpStart{background:linear-gradient(#f6d47c,#c58b25);color:#102344;border:1px solid #ffe5a3;border-radius:10px;padding:13px 18px;font-weight:900;width:100%;margin:8px 0 12px}
+#helpClose{background:#28486e;color:white;border:1px solid #7596c5;border-radius:9px;padding:12px 20px;font-weight:800;width:100%}
+#next{display:none}
+#next.show{display:block}
+.small{font-size:12px;color:#b7cbe8}
+#score{font-size:48px;color:#f5d17a;font-weight:900;margin:15px}
+@media(max-width:520px){#answers{grid-template-columns:1fr}.answer{min-height:52px}body{padding:9px}#app{padding:15px}}
+</style>
+</head>
+<body>
+<main id="app">
+<header><h1>✦ LEGYEN ÖN IS MILLIOMOS! ✦</h1><div id="subtitle">Személyre szabott különkiadás · 9 kérdés</div></header>
+<div class="toolbar"><button id="pause" type="button" aria-pressed="false">⏸ Szünet</button><button id="sound" type="button" aria-pressed="true">🔊 Hang bekapcsolva</button><button id="fullscreen" type="button">⛶ Kivetítés / teljes képernyő</button></div>
+<section id="intro">
+<div class="trophy">🏆</div><h2>Készen állsz?</h2>
+<p>9 kérdés vár rád. Minden kérdés megválaszolására 60 másodperced van.</p>
+<p class="small">A játék hanghatásai a kezdés után indulnak. A hangerőt a telefonod gombjaival állíthatod.</p>
+<button class="primary" id="start">JÁTÉK INDÍTÁSA</button>
+</section>
+<section id="game" hidden>
+<div id="timer">60</div><div id="progress"></div><div id="qnum"></div>
+<div id="question"></div>
+<div id="lifelinebar" aria-label="Segítségek">
+<button class="primary" id="openHelpMenu" type="button">🛟 SEGÍTSÉG KÉRÉSE</button>
+</div>
+<div id="answers"></div><div id="status" aria-live="polite"></div>
+<button class="primary" id="next">KÖVETKEZŐ KÉRDÉS</button>
+</section>
+<section id="result" hidden>
+<div class="trophy">🏆</div><h2>Vége a játéknak!</h2><div id="score"></div><p id="message"></p>
+<button class="primary" id="restart">ÚJRAJÁTSZÁS</button>
+</section>
+</main>
+<div id="helpMenu" role="dialog" aria-modal="true" aria-label="Segítség kiválasztása">
+ <div id="helpMenuCard"><h2>Milyen segítséget kérsz?</h2><p>Mindegyik segítséget egyszer használhatod fel.</p><div id="helpChoices">
+  <button class="life-btn" data-life="fifty">½ 50:50 <span class="life-state">ELÉRHETŐ</span></button>
+  <button class="life-btn" data-life="phone">☎ Telefonos segítség <span class="life-state">ELÉRHETŐ</span></button>
+  <button class="life-btn" data-life="audience">▥ Közönség <span class="life-state">ELÉRHETŐ</span></button>
+  <button class="life-btn" data-life="host">★ Műsorvezető <span class="life-state">ELÉRHETŐ</span></button>
+ </div><button id="helpMenuClose" type="button">MÉGSEM</button></div>
+</div>
+<div id="helpPanel" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+ <div id="helpCard"><h2 id="helpTitle">Segítség</h2><div id="helpClock">60</div><div id="helpContent"></div><button id="helpStart" type="button">▶ SEGÍTSÉG IDŐZÍTŐ INDÍTÁSA</button><button id="helpClose" type="button">VISSZA A KÉRDÉSHEZ</button></div>
+</div>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const questions=[
+{q:"Hogy nevezik Hasznoson a bevándorlókat?",a:["mihaszna","migráns","senkiházi","gyütt-ment"],c:3},
+{q:"Mi az a kaja, amivel ki lehet téged kergetni a világból?",a:["finomfőzelék","a nagyi tökfőzeléke","pacal pörkölt","rántott békacomb"],c:1},
+{q:"Mikor szerezted a jogosítványodat?",a:["1994","1993","1992","ki emlékszik már erre?"],c:0},
+{q:"Mi a bakancslistás utazási álmod?",a:["medvevadászat Erdélyben","szivarozva old timer autót vezetni Kubában","egy lakatlan sziget, ahol nincs térerő","egy hétvégi Tokaji hajókázás"],c:1},
+{q:"A feleséged előzetes vallomása szerint melyik imádott hobbidra költöd a legtöbb pénzt?",a:["kondibérletre","hajócsavarra","új felni az offroad kocsira","túracipőre"],c:2},
+{q:"Mikor volt az esküvőtök Lillával?",a:["2011.07.20.","2013.08.10.","2012.09.01.","2013.04.01."],c:1},
+{q:"Hány évesek a gyermekeid összesen?",a:["57","fogalmam sincs","58","56"],c:0},
+{q:"Mikor költöztetek be a házatokba?",a:["2018","2017","2019","2020"],c:0},
+{q:"Ha összerakjuk a tényeket, kőkeményen dolgozol, edzel, offroadozol, hajózol, imádod az életet és komoly utazási álmaid vannak. Mi a hivatalos diagnózis így 50 évesen?",a:["Ideje lenne végre benőnie a fejed lágyának és megkomolyodni!","Egy megállíthatatlan, vagány örökifjú vagy, akinek most kezdődik az élet második, legszebb aranykora!","Elhasználódott az alváz, irány a legközelebbi szerviz!","Elfáradtál, holnaptól jöhet a jól megérdemelt, 24 órás semmittevés!"],c:1}
+];
+let i=0,score=0,left=60,timer=null,locked=false,muted=false,ctx=null,helpTimer=null,helpLeft=60,helpActive=false,helpStarted=false,paused=false;
+const usedLives={fifty:false,phone:false,audience:false,host:false};
+function audio(){if(!ctx){const AC=window.AudioContext||window.webkitAudioContext;if(AC)ctx=new AC()}if(ctx&&ctx.state==="suspended")ctx.resume()}
+function tone(freq,duration=.15,type="sine",volume=.07,delay=0){if(muted)return;audio();if(!ctx)return;const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.0001,ctx.currentTime+delay);g.gain.exponentialRampToValueAtTime(volume,ctx.currentTime+delay+.015);g.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+delay+duration);o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+delay);o.stop(ctx.currentTime+delay+duration+.03)}
+function fanfare(){[523,659,784,1047].forEach((f,n)=>tone(f,.28,"triangle",.07,n*.13))}
+function correctSound(){[660,830,990].forEach((f,n)=>tone(f,.18,"sine",.08,n*.12))}
+function wrongSound(){tone(220,.3,"sawtooth",.06);tone(165,.45,"sawtooth",.05,.22)}
+function tick(urgent=false){tone(urgent?1120:760,urgent?.075:.045,"square",urgent?.045:.022)}
+function stop(){if(timer){clearInterval(timer);timer=null}}
+function stopHelp(){if(helpTimer){clearInterval(helpTimer);helpTimer=null}}
+function updatePauseButton(){const b=$("pause");b.textContent=paused?"▶ Folytatás":"⏸ Szünet";b.setAttribute("aria-pressed",String(paused))}
+function startHelpClock(){stopHelp();if(paused||!helpActive||!helpStarted)return;helpTimer=setInterval(()=>{helpLeft--;$("helpClock").textContent=helpLeft;if(helpLeft<=0){helpLeft=0;$("helpClock").textContent="0";closeHelp()}},1000)}
+function pauseGame(){if($("game").hidden)return;paused=!paused;if(paused){stop();stopHelp();$("status").textContent="⏸ A játék szünetel."}else{$("status").textContent="";if(helpActive){if(helpStarted)startHelpClock()}else if(!locked)clock(false)}updatePauseButton()}
+function updateLifeButtons(){document.querySelectorAll('[data-life]').forEach(b=>{const spent=usedLives[b.dataset.life];b.disabled=spent||locked||paused;const state=b.querySelector('.life-state');if(state)state.textContent=spent?'ELFOGYOTT':'ELÉRHETŐ'})}
+function openHelp(title,message=''){ $('helpMenu').classList.remove('open');stop();stopHelp();helpActive=true;helpStarted=false;helpLeft=60;$('helpTitle').textContent=title;$('helpContent').textContent=message;$('helpClock').textContent='60';$('helpStart').hidden=false;$('helpPanel').classList.add('open') }
+function beginHelp(){if(!helpActive||helpStarted||paused)return;helpStarted=true;$('helpStart').hidden=true;startHelpClock()}
+function closeHelp(){stopHelp();$('helpPanel').classList.remove('open');helpStarted=false;if(helpActive&&!locked){helpActive=false;if(!paused)clock(false)}}
+function useLife(kind){if(locked||paused||usedLives[kind])return;usedLives[kind]=true;updateLifeButtons();const q=questions[i];
+ if(kind==='fifty'){
+  const wrong=[0,1,2,3].filter(n=>n!==q.c).sort(()=>Math.random()-.5).slice(0,2);
+  wrong.forEach(n=>{const b=$('answers').children[n];b.disabled=true;b.style.visibility='hidden'});
+  $('status').textContent='50:50 segítség: két rossz válasz eltűnt.';openHelp('½ 50:50 segítség','Két rossz válasz eltűnt. Indítsd el a külön 60 másodperces időzítőt, majd gondold át a két megmaradt lehetőséget!');return;
+ }
+ if(kind==='phone'){openHelp('☎ Telefonos segítség');return}
+ if(kind==='audience'){openHelp('▥ Közönségszavazás');return}
+ if(kind==='host'){openHelp('★ Műsorvezetői segítség');return}
+}
+function drawProgress(){$("progress").innerHTML=questions.map((_,n)=>`<span class="dot ${n<i?"past":n===i?"active":""}"></span>`).join("")}
+function clock(reset=true){stop();if(reset)left=60;$("timer").textContent=left;$("timer").classList.toggle("urgent",left<=10);if(paused||locked||helpActive)return;timer=setInterval(()=>{left--;$("timer").textContent=left;if(left<=10&&left>0){$("timer").classList.add("urgent");tick(true)}else if(left>10){tick(false)}if(left<=0){stop();answer(-1)}},1000)}
+function render(){locked=false;helpActive=false;paused=false;updatePauseButton();stopHelp();updateLifeButtons();drawProgress();$("qnum").textContent=`${i+1}. KÉRDÉS`; $("question").textContent=questions[i].q;$("answers").innerHTML="";$("status").textContent="";$("next").classList.remove("show");$("next").textContent=i===questions.length-1?"EREDMÉNY MEGTEKINTÉSE":"KÖVETKEZŐ KÉRDÉS";questions[i].a.forEach((v,n)=>{const b=document.createElement("button");b.className="answer";b.textContent=String.fromCharCode(65+n)+": "+v;b.addEventListener("click",()=>answer(n));$("answers").appendChild(b)});clock()}
+function answer(n){if(locked||helpActive||paused)return;locked=true;stop();stopHelp();const q=questions[i];const good=n===q.c;if(good)score++;[...$("answers").children].forEach((b,k)=>{b.disabled=true;if(k===q.c)b.classList.add("correct");else if(k===n)b.classList.add("wrong")});$("status").textContent=good?"✓ HELYES VÁLASZ!":n===-1?"⌛ LEJÁRT AZ IDŐ!":"✕ NEM EZ A HELYES VÁLASZ";if(good)correctSound();else wrongSound();$("next").classList.add("show");updateLifeButtons()}
+function finish(){stop();stopHelp();$("pause").style.display="none";$("game").hidden=true;$("result").hidden=false;$("score").textContent=`${score} / ${questions.length}`;$("message").textContent=score===9?"Tökéletes! Minden kérdésre tudtad a választ!":score>=6?"Szép teljesítmény!":"Köszönjük a játékot! Próbáld meg újra!";fanfare()}
+function start(){audio();stop();stopHelp();Object.keys(usedLives).forEach(k=>usedLives[k]=false);paused=false;updatePauseButton();$("pause").style.display="inline-block";$("helpMenu").classList.remove("open");$("helpPanel").classList.remove("open");helpActive=false;$("intro").hidden=true;$("result").hidden=true;$("game").hidden=false;i=0;score=0;render();tone(440,.2,"triangle",.06)}
+$("start").addEventListener("click",start);$("restart").addEventListener("click",start);
+$("pause").addEventListener("click",pauseGame);
+$("openHelpMenu").addEventListener("click",()=>{if(locked||paused)return;updateLifeButtons();$("helpMenu").classList.add("open")});
+$("helpMenuClose").addEventListener("click",()=>$("helpMenu").classList.remove("open"));
+document.querySelectorAll("[data-life]").forEach(b=>b.addEventListener("click",()=>useLife(b.dataset.life)));
+$("helpClose").addEventListener("click",closeHelp);
+$("helpStart").addEventListener("click",beginHelp);
+$("next").addEventListener("click",()=>{if(paused)return;if(i===questions.length-1)finish();else{i++;render()}});
+$("fullscreen").addEventListener("click",async()=>{try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen()}else{await document.exitFullscreen()}}catch(e){alert("A teljes képernyős módot a böngésző menüjéből is bekapcsolhatod.")}});
+$("sound").addEventListener("click",()=>{muted=!muted;$("sound").textContent=muted?"🔇 Hang kikapcsolva":"🔊 Hang bekapcsolva";$("sound").setAttribute("aria-pressed",String(!muted));if(!muted){audio();tone(660,.12)}});
+})();
+</script>
+</body>
+</html>
